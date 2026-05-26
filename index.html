@@ -43,15 +43,13 @@
         /* Aturan Print Faktur (Menyembunyikan UI aplikasi saat cetak) */
         @media print {
             body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area {
-                position: absolute !important;
-                left: 0 !important; top: 0 !important;
-                width: 100% !important; margin: 0 !important; padding: 0 !important;
-                background: white !important;
+            #invoice-modal, #invoice-modal * { visibility: visible; }
+            #invoice-modal { 
+                position: absolute !important; 
+                left: 0 !important; top: 0 !important; 
+                width: 100% !important; background: white !important; 
             }
             .no-print { display: none !important; }
-            #invoice-modal { background: transparent !important; position: static !important; }
         }
     </style>
 </head>
@@ -605,10 +603,10 @@
                     <button onclick="downloadExcelRekap()" class="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-file-excel"></i> Unduh CSV</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"><span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Penjualan Kotor</span><span class="block text-2xl font-black text-slate-800 mt-1 font-mono" id="rekap-total-omset">Rp 0</span></div>
-                    <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 shadow-sm"><span class="text-[11px] text-emerald-600 font-bold uppercase tracking-wider">Net Profit</span><span class="block text-2xl font-black text-emerald-700 mt-1 font-mono" id="rekap-total-profit">Rp 0</span></div>
-                    <div class="bg-indigo-50 p-5 rounded-2xl border border-indigo-100 shadow-sm"><span class="text-[11px] text-indigo-600 font-bold uppercase tracking-wider">Uang Masuk (Kas)</span><span class="block text-2xl font-black text-indigo-700 mt-1 font-mono" id="rekap-total-cash">Rp 0</span></div>
-                    <div class="bg-rose-50 p-5 rounded-2xl border border-rose-100 shadow-sm"><span class="text-[11px] text-rose-600 font-bold uppercase tracking-wider">Piutang Terbentuk</span><span class="block text-2xl font-black text-rose-700 mt-1 font-mono" id="rekap-total-piutang">Rp 0</span></div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center"><span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Penjualan Kotor</span><span class="block text-2xl font-black text-slate-800 mt-1 font-mono" id="rekap-total-omset">Rp 0</span></div>
+                    <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 shadow-sm flex flex-col justify-center"><span class="text-[11px] text-emerald-600 font-bold uppercase tracking-wider">Net Profit (Keuntungan)</span><span class="block text-2xl font-black text-emerald-700 mt-1 font-mono" id="rekap-total-profit">Rp 0</span></div>
+                    <div class="bg-indigo-50 p-5 rounded-2xl border border-indigo-100 shadow-sm flex flex-col justify-center"><span class="text-[11px] text-indigo-600 font-bold uppercase tracking-wider">Kas / Uang Masuk</span><span class="block text-2xl font-black text-indigo-700 mt-1 font-mono" id="rekap-total-cash">Rp 0</span></div>
+                    <div class="bg-rose-50 p-5 rounded-2xl border border-rose-100 shadow-sm flex flex-col justify-center"><span class="text-[11px] text-rose-600 font-bold uppercase tracking-wider">Piutang Terbentuk</span><span class="block text-2xl font-black text-rose-700 mt-1 font-mono" id="rekap-total-piutang">Rp 0</span></div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h4 class="font-bold text-slate-800 mb-5 flex items-center gap-2 border-b border-slate-100 pb-3"><i class="fa-solid fa-list-check text-indigo-500"></i> Riwayat Transaksi</h4>
@@ -675,9 +673,6 @@
                                 <button type="button" onclick="resetSettingsForm()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-all">Kembalikan ke Default</button>
                             </div>
                         </form>
-                        <div class="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100 text-[10px] text-amber-700 leading-relaxed font-medium">
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Pengaturan Logo & Profil Toko ini hanya disimpan secara lokal (di dalam browser Anda saat ini) untuk mencegah error sinkronisasi pada Supabase yang belum memiliki tabel khusus <i>store_settings</i>.
-                        </div>
                     </div>
 
                     <!-- Live Preview Panel -->
@@ -873,11 +868,14 @@
             apiKey: 'pos_web_api_key'  
         };
 
+        // ID statis untuk pengaturan toko (Singleton pattern)
+        const CONST_ID_SETTINGS = '11111111-1111-1111-1111-111111111111';
+
+        // Dummy Data Anti Bentrok (UUID statis yang sah)
         const dummyProducts = [
             { id: '11111111-1111-1111-1111-111111111111', kode: 'SMB-001', nama: 'Beras Premium Cianjur 5kg', hargaBeli: 62000, hargaJual: 75000, stok: 45, minStok: 5 },
             { id: '22222222-2222-2222-2222-222222222222', kode: 'SMB-002', nama: 'Minyak Goreng Bimoli 2L', hargaBeli: 28000, hargaJual: 35000, stok: 3, minStok: 10 }
         ];
-
         const dummyCustomers = [
             { id: CONST_ID_UMUM, nama: 'Umum / Non-Customer', telepon: '-', alamat: '-', piutang: 0 },
             { id: '33333333-3333-3333-3333-333333333333', nama: 'Pak Budi Hartono', telepon: '08129876543', alamat: 'Perumahan Indah Permai', piutang: 0 }
@@ -907,7 +905,7 @@
 
         window.onload = function() {
             loadFromLocalStorage();
-            applySettingsUI(); // Menerapkan pengaturan toko ke seluruh elemen UI
+            applySettingsUI(); // Terapkan profil toko
 
             const inputUrl = document.getElementById('db-api-url').value;
             const inputKey = document.getElementById('db-api-key').value;
@@ -955,19 +953,16 @@
         }
 
         function applySettingsUI() {
-            // Update teks statis UI
             document.getElementById('sidebar-store-name').textContent = storeSettings.nama;
             document.getElementById('header-store-name').textContent = storeSettings.nama;
             document.getElementById('dashboard-store-name').textContent = storeSettings.nama;
             
-            // Area Form Setting 
             document.getElementById('setting-nama').value = storeSettings.nama;
             document.getElementById('setting-alamat').value = storeSettings.alamat;
             document.getElementById('setting-telepon').value = storeSettings.telepon;
             document.getElementById('setting-email').value = storeSettings.email;
             document.getElementById('setting-logo').value = storeSettings.logoUrl;
 
-            // Area Print Faktur & Live Preview
             document.getElementById('print-store-name').textContent = storeSettings.nama;
             document.getElementById('print-store-address').textContent = storeSettings.alamat;
             let emailText = storeSettings.email ? ` | Email: ${storeSettings.email}` : "";
@@ -978,7 +973,6 @@
             document.getElementById('preview-store-address').textContent = storeSettings.alamat;
             document.getElementById('preview-store-contact').textContent = `Telp: ${storeSettings.telepon}`;
 
-            // Update Logo Image atau Fallback Icon
             const elsImage = ['sidebar-logo', 'print-store-logo', 'preview-logo-img'];
             const elsIcon = ['sidebar-icon', 'print-store-icon', 'preview-logo-icon'];
             
@@ -987,7 +981,6 @@
                     const el = document.getElementById(id);
                     el.src = storeSettings.logoUrl;
                     el.classList.remove('hidden');
-                    // Jika logo gagal di-load, kembalikan ke icon default
                     el.onerror = function() {
                         this.classList.add('hidden');
                         document.getElementById(elsIcon[elsImage.indexOf(id)]).classList.remove('hidden');
@@ -1022,8 +1015,7 @@
                 email: "berkahsembako@gmail.com",
                 logoUrl: ""
             };
-            saveToLocalStorage();
-            applySettingsUI();
+            saveToLocalStorage(); applySettingsUI();
             showToast('Pengaturan dikembalikan ke default bawaan sistem.', 'warning');
         }
 
@@ -1151,16 +1143,16 @@
         function setCloudStatus(status) {
             const badge = document.getElementById('cloud-status-badge');
             if (status === 'connected') {
-                badge.className = "cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 transition-all shadow-sm";
+                badge.className = "cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 transition-all hover:bg-emerald-100 shadow-sm";
                 badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> Cloud Terhubung`;
             } else if (status === 'syncing') {
-                badge.className = "cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 transition-all shadow-sm";
+                badge.className = "cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 transition-all hover:bg-indigo-100 shadow-sm";
                 badge.innerHTML = `<i class="fa-solid fa-arrows-rotate animate-spin"></i> Sinkronisasi...`;
             } else if (status === 'error') {
-                badge.className = "cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 transition-all shadow-sm";
+                badge.className = "cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 transition-all hover:bg-rose-100 shadow-sm";
                 badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Gagal Sinkron`;
             } else {
-                badge.className = "cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 transition-all shadow-sm";
+                badge.className = "cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 transition-all hover:bg-amber-100 shadow-sm";
                 badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-up animate-pulse"></i> Mode Offline`;
             }
         }
@@ -1194,9 +1186,9 @@
             };
 
             try {
-                const [dbCust, dbProd, dbTx, dbItems, dbCor] = await Promise.all([
+                const [dbCust, dbProd, dbTx, dbItems, dbCor, dbSettings] = await Promise.all([
                     fetchTable('customers'), fetchTable('products'), fetchTable('transactions'),
-                    fetchTable('transaction_items'), fetchTable('stock_corrections')
+                    fetchTable('transaction_items'), fetchTable('stock_corrections'), fetchTable('store_settings')
                 ]);
 
                 customers = dbCust.map(c => ({ id: c.id, nama: c.name, telepon: c.phone || '-', alamat: c.address || '-', piutang: parseFloat(c.debt_amount) || 0 }));
@@ -1222,6 +1214,18 @@
                     id: c.id, productId: c.product_id, productName: products.find(p => p.id === c.product_id)?.nama || 'Barang Terhapus',
                     qtySebelum: c.old_stock, qtySesudah: c.new_stock, selisih: c.new_stock - c.old_stock, alasan: c.reason, tanggal: c.created_at.substring(0, 10)
                 }));
+
+                if (dbSettings && dbSettings.length > 0) {
+                    const s = dbSettings[0]; // Ambil data pertama
+                    storeSettings = {
+                        nama: s.name || "Toko Sembako Berkah",
+                        alamat: s.address || "-",
+                        telepon: s.phone || "-",
+                        email: s.email || "",
+                        logoUrl: s.logo_url || ""
+                    };
+                    applySettingsUI();
+                }
 
                 saveToLocalStorage(); setCloudStatus('connected'); showToast('Database disinkronkan!', 'success'); switchTab('dashboard');
             } catch (err) { setCloudStatus('error'); showToast('Gagal menarik data.', 'danger'); }
@@ -1261,8 +1265,19 @@
                 transactions.forEach(tx => { tx.items.forEach(item => { if (item.productId !== 'N/A') txItemsPayload.push({ id: item.itemId, transaction_id: tx.id, product_id: item.productId, quantity: item.qty, price_at_transaction: item.harga, subtotal: item.subtotal }); }); });
                 await upsertTable('transaction_items', txItemsPayload);
 
+                // Push pengaturan toko (menggunakan UUID statis)
+                const settingsPayload = [{
+                    id: CONST_ID_SETTINGS,
+                    name: storeSettings.nama,
+                    address: storeSettings.alamat,
+                    phone: storeSettings.telepon,
+                    email: storeSettings.email,
+                    logo_url: storeSettings.logoUrl
+                }];
+                await upsertTable('store_settings', settingsPayload);
+
                 setCloudStatus('connected'); if (!isSilent) showToast('Data dikirim!', 'success');
-            } catch (err) { setCloudStatus('error'); if (!isSilent) showToast('Gagal Push Data.', 'danger'); }
+            } catch (err) { setCloudStatus('error'); if (!isSilent) showToast('Gagal Push Data.', 'danger'); console.error(err); }
         }
 
         function fetchWithExponentialBackoff(url, options, retries = 3, delay = 1000) {
@@ -1522,7 +1537,7 @@
             else {
                 filteredTx.forEach(tx => {
                     if (!tx.isPaymentOnly) { tOmset += tx.grandTotal; tPiutang += tx.sisaPiutang || 0; } tProfit += tx.profit || 0;
-                    if (tx.isPaymentOnly || tx.tipePembayaran === 'KREDIT') { tCash += tx.bayar; } else { tCash += tx.grandTotal; }
+                    if (tx.isPaymentOnly) { tCash += tx.bayar; } else if (tx.tipePembayaran === 'KREDIT') { tCash += tx.bayar; } else { tCash += tx.grandTotal; }
                     const badge = tx.tipePembayaran === 'TUNAI' ? 'bg-emerald-50 text-emerald-700' : tx.tipePembayaran === 'TRANSFER' ? 'bg-indigo-50 text-indigo-700' : 'bg-rose-50 text-rose-700';
                     tbody.innerHTML += `<tr class="hover:bg-slate-50 text-xs"><td class="py-3 px-4 font-bold text-slate-700 font-mono text-[11px]">${tx.invoiceNo}</td><td class="py-3 px-4">${formatTanggalLokal(tx.tanggal)}</td><td class="py-3 px-4 font-bold text-slate-800">${tx.customerName}</td><td class="py-3 px-4 text-right font-mono">${formatRupiah(tx.subtotal)}</td><td class="py-3 px-4 text-right font-mono text-rose-500">${formatRupiah(tx.diskon)}</td><td class="py-3 px-4 text-right font-mono font-black text-slate-900">${formatRupiah(tx.grandTotal)}</td><td class="py-3 px-4 text-right font-mono font-bold ${tx.sisaPiutang > 0 ? 'text-rose-600' : 'text-slate-400'}">${formatRupiah(tx.sisaPiutang)}</td><td class="py-3 px-4 text-center"><span class="px-2.5 py-1 rounded-md text-[9px] font-bold ${badge}">${tx.tipePembayaran}</span></td><td class="py-3 px-4 text-center"><button onclick='reprintInvoice("${tx.id}")' class="p-1.5 px-3 bg-white border border-slate-200 text-slate-600 rounded-lg shadow-sm"><i class="fa-solid fa-print"></i></button>${tx.isPaymentOnly ? '' : `<button onclick="voidTransaction('${tx.id}')" class="p-1.5 px-3 bg-white border border-rose-200 text-rose-600 rounded-lg shadow-sm ml-1"><i class="fa-solid fa-ban"></i></button>`}</td></tr>`;
                 });
