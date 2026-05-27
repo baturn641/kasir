@@ -768,8 +768,8 @@
                     <!-- Dinamis Identitas & Logo -->
                     <div class="flex items-center gap-4">
                         <!-- Logo -->
-                        <img id="print-store-logo" src="" alt="Logo" class="w-[70px] h-[70px] object-contain hidden print:block">
-                        <div id="print-store-icon" class="w-[70px] h-[70px] bg-slate-100 flex items-center justify-center text-slate-800 text-3xl border border-slate-300 print:flex">
+                        <img id="print-store-logo" src="" alt="Logo" class="w-[70px] h-[70px] object-contain hidden">
+                        <div id="print-store-icon" class="w-[70px] h-[70px] bg-slate-100 flex items-center justify-center text-slate-800 text-3xl border border-slate-300">
                             <i class="fa-solid fa-shop"></i>
                         </div>
                         <!-- Teks Info -->
@@ -1226,7 +1226,7 @@
                 }));
 
                 if (dbSettings && dbSettings.length > 0) {
-                    const s = dbSettings[0]; // Ambil data pertama
+                    const s = dbSettings[0]; 
                     storeSettings = {
                         nama: s.name || "Toko Sembako Berkah",
                         alamat: s.address || "-",
@@ -1275,7 +1275,7 @@
                 transactions.forEach(tx => { tx.items.forEach(item => { if (item.productId !== 'N/A') txItemsPayload.push({ id: item.itemId, transaction_id: tx.id, product_id: item.productId, quantity: item.qty, price_at_transaction: item.harga, subtotal: item.subtotal }); }); });
                 await upsertTable('transaction_items', txItemsPayload);
 
-                // Push pengaturan toko (menggunakan UUID statis)
+                // Push pengaturan toko
                 const settingsPayload = [{
                     id: CONST_ID_SETTINGS,
                     name: storeSettings.nama,
